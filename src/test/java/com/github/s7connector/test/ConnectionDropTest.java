@@ -18,42 +18,43 @@ package com.github.s7connector.test;
 import com.github.s7connector.api.DaveArea;
 import com.github.s7connector.api.S7Connector;
 import com.github.s7connector.api.factory.S7ConnectorFactory;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.SocketException;
 
 public class ConnectionDropTest {
 
 
-	@Test
-	public void test() throws Exception {
+    @Test
+    public void test() throws Exception {
 
-		final int port = (int)(Math.random() * 10000) + 10000;
-		final ServerSocket serverSocket = new ServerSocket(port);
-		new Thread(() -> {
-			try {
-				Socket socket = serverSocket.accept();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		});
+        final int port = (int) (Math.random() * 10000) + 10000;
+        final ServerSocket serverSocket = new ServerSocket(port);
+        new Thread(() -> {
+            try {
+                serverSocket.accept();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
 
-		S7Connector connector = S7ConnectorFactory.buildTCPConnector()
-				.withHost("127.0.0.1")
-				.withPort(port)
-				.build();
+        S7Connector connector = S7ConnectorFactory.buildTCPConnector()
+                .withHost("127.0.0.1")
+                .withPort(port)
+                .build();
 
-		serverSocket.close();
+        serverSocket.close();
 
-		try {
-			connector.read(DaveArea.DB, 1, 1, 0);
-		} catch(IllegalArgumentException e){
-			return;
-		}
+        try {
+            connector.read(DaveArea.DB, 1, 1, 0);
+        } catch (SocketException e) {
+            return;
+        }
 
-		throw new IllegalArgumentException("fail-case not reached!");
-	}
+        Assert.fail("fail-case not reached!");
+    }
 
 }
